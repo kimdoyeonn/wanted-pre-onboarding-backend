@@ -36,8 +36,8 @@ export class Company {
 
   @OneToOne(() => User, (user) => user.company, { cascade: true })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user?: User;
 
   @OneToMany(() => JobPosting, (jobPosting) => jobPosting.company)
-  jobPostings: JobPosting[];
+  jobPostings?: JobPosting[];
 }

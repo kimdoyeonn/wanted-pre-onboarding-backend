@@ -30,11 +30,11 @@ export class Application {
 
   @OneToOne(() => User, (user) => user.application, { cascade: true })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user?: User;
 
   @ManyToOne(() => JobPosting, (jobPosting) => jobPosting.applications, {
     cascade: true,
   })
   @JoinColumn({ name: 'job_posting_id' })
-  jobPosting: JobPosting;
+  jobPosting?: JobPosting;
 }

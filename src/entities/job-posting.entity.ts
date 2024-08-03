@@ -39,8 +39,8 @@ export class JobPosting {
 
   @ManyToOne(() => Company, (company) => company.jobPostings)
   @JoinColumn({ name: 'company_id' })
-  company: Company;
+  company?: Company;
 
   @OneToMany(() => Application, (application) => application.jobPosting)
-  applications: Application[];
+  applications?: Application[];
 }
