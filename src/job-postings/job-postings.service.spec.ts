@@ -1,13 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JobPostingsService } from './job-postings.service';
 import { JobPosting } from '../entities/job-posting.entity';
-import { MockRepository, mockRepository } from '../testing-utils/mock';
+import { MockRepository, mockRepository } from '../../test/testing-utils/mock';
 import { NotFoundException } from '@nestjs/common';
 import { JobPostingsRepository } from './job-postings.repository';
+import { CompaniesService } from '../companies/companies.service';
+import { CompaniesRepository } from '../companies/companies.repository';
+import { ApplicationRepository } from '../applications/application.repository';
+import { Company } from 'src/entities/company.entity';
 
 describe('JobPostingsService', () => {
   let jobPostingsService: JobPostingsService;
   let jobPostingRepository: MockRepository<JobPosting>;
+  let companiesRepository: MockRepository<Company>;
+  let companiesService: CompaniesService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -17,18 +23,32 @@ describe('JobPostingsService', () => {
           provide: JobPostingsRepository,
           useValue: mockRepository(),
         },
+        {
+          provide: CompaniesRepository,
+          useValue: mockRepository(),
+        },
+        {
+          provide: ApplicationRepository,
+          useValue: mockRepository(),
+        },
+        CompaniesService,
       ],
     }).compile();
 
     jobPostingRepository = module.get<MockRepository<JobPosting>>(
       JobPostingsRepository,
     );
+    companiesRepository =
+      module.get<MockRepository<Company>>(CompaniesRepository);
     jobPostingsService = module.get<JobPostingsService>(JobPostingsService);
+    companiesService = module.get<CompaniesService>(CompaniesService);
   });
 
   it('should be defined', () => {
     expect(jobPostingsService).toBeDefined();
     expect(jobPostingRepository).toBeDefined();
+    expect(companiesService).toBeDefined();
+    expect(companiesRepository).toBeDefined();
   });
 
   describe('getByCompanyId', () => {
@@ -185,26 +205,34 @@ describe('JobPostingsService', () => {
   });
 
   describe('create', () => {
+    const jobPostingDto = {
+      position: '3 position 333',
+      description:
+        'description description description description description',
+      stack: 'react',
+      reward: 1000000,
+      companyId: 3,
+    };
+    const newJobPosting = {
+      position: '3 position 333',
+      description:
+        'description description description description description',
+      stack: 'react',
+      reward: 1000000,
+      companyId: 3,
+      id: 9,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     it('JobPosting 객체를 생성하여 반환', async () => {
-      const jobPostingDto = {
-        position: '3 position 333',
-        description:
-          'description description description description description',
-        stack: 'react',
-        reward: 1000000,
-        companyId: 3,
-      };
-      const newJobPosting = {
-        position: '3 position 333',
-        description:
-          'description description description description description',
-        stack: 'react',
-        reward: 1000000,
-        companyId: 3,
-        id: 9,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const findCompanySpy = jest
+        .spyOn(companiesRepository, 'findOneBy')
+        .mockResolvedValue({
+          id: 3,
+          name: 'test',
+          nation: 'Korea',
+          city: 'Seoul',
+        });
 
       const createSpy = jest
         .spyOn(jobPostingRepository, 'save')
@@ -212,9 +240,26 @@ describe('JobPostingsService', () => {
 
       const result = await jobPostingsService.create(jobPostingDto);
 
+      expect(findCompanySpy).toHaveBeenCalledTimes(1);
+      expect(findCompanySpy).toHaveBeenCalledWith({
+        id: jobPostingDto.companyId,
+      });
+
       expect(createSpy).toHaveBeenCalledTimes(1);
       expect(createSpy).toHaveBeenCalledWith(jobPostingDto);
+
       expect(result).toEqual(newJobPosting);
+    });
+    it('company가 존재하지 않을 경우 에러를 반환', async () => {
+      jest.spyOn(companiesService, 'getOne').mockResolvedValue(null);
+      jest.spyOn(jobPostingRepository, 'save').mockResolvedValue(newJobPosting);
+
+      try {
+        await jobPostingsService.create(jobPostingDto);
+      } catch (e) {
+        expect(e).toBeInstanceOf(NotFoundException);
+        expect(e.message).toBeDefined();
+      }
     });
   });
 
