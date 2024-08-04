@@ -1,35 +1,43 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ApplicationsService } from './applications.service';
 import { Application } from '../entities/application.entity';
-import { MockRepository, mockRepository } from '../testing-utils/mock';
-import { getRepositoryToken } from '@nestjs/typeorm';
+import { MockRepository, mockRepository } from '../../test/testing-utils/mock';
 import { JobPostingsService } from '../job-postings/job-postings.service';
 import { UsersService } from '../users/users.service';
 import { JobPostingsRepository } from '../job-postings/job-postings.repository';
 import { UsersRepository } from '../users/users.repository';
+import { CompaniesService } from '../companies/companies.service';
+import { CompaniesRepository } from '../companies/companies.repository';
+import { ApplicationRepository } from './application.repository';
 
 describe('ApplicationsService', () => {
   let applicationsService: ApplicationsService;
   let applicationRepository: MockRepository<Application>;
   let jobPostingsService: JobPostingsService;
   let usersService: UsersService;
+  let companiesService: CompaniesService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ApplicationsService,
         {
-          provide: getRepositoryToken(Application),
+          provide: ApplicationRepository,
           useValue: mockRepository(),
         },
         JobPostingsService,
         UsersService,
+        CompaniesService,
         {
-          provide: getRepositoryToken(JobPostingsRepository),
+          provide: JobPostingsRepository,
           useValue: mockRepository(),
         },
         {
-          provide: getRepositoryToken(UsersRepository),
+          provide: UsersRepository,
+          useValue: mockRepository(),
+        },
+        {
+          provide: CompaniesRepository,
           useValue: mockRepository(),
         },
       ],
@@ -37,10 +45,9 @@ describe('ApplicationsService', () => {
 
     jobPostingsService = module.get<JobPostingsService>(JobPostingsService);
     usersService = module.get<UsersService>(UsersService);
+    companiesService = module.get<CompaniesService>(CompaniesService);
     applicationsService = module.get<ApplicationsService>(ApplicationsService);
-    applicationRepository = module.get<MockRepository<Application>>(
-      getRepositoryToken(Application),
-    );
+    applicationRepository = module.get(ApplicationRepository);
   });
 
   it('should be defined', () => {
@@ -48,6 +55,7 @@ describe('ApplicationsService', () => {
     expect(applicationRepository).toBeDefined();
     expect(jobPostingsService).toBeDefined();
     expect(usersService).toBeDefined();
+    expect(companiesService).toBeDefined();
   });
 
   describe('apply', () => {
