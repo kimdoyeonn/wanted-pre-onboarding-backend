@@ -13,6 +13,7 @@ describe('JobPostingsController', () => {
     getOne: jest.fn(),
     getOneWithCompanyById: jest.fn(),
     getByCompanyId: jest.fn(),
+    delete: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -243,6 +244,26 @@ describe('JobPostingsController', () => {
       expect(updateSpy).toHaveBeenCalledWith(jobPostingId, jobPostingDto);
 
       expect(response).toEqual(updateResult);
+    });
+  });
+
+  describe('delete', () => {
+    it('id에 대한 jobPosting을 삭제하고 아무것도 반환하지 않음', async () => {
+      const jobPostingId = 2;
+
+      const deleteSpy = jest
+        .spyOn(jobPostingsService, 'delete')
+        .mockResolvedValue({
+          affected: 1,
+          raw: [],
+        });
+
+      const response = await jobPostingsController.delete(jobPostingId);
+
+      expect(deleteSpy).toHaveBeenCalled();
+      expect(deleteSpy).toHaveBeenCalledWith(jobPostingId);
+
+      expect(response).toBeUndefined();
     });
   });
 });

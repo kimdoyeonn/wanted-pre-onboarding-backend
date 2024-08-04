@@ -60,4 +60,20 @@ export class JobPostingsService {
 
     return updatedJobPosting;
   }
+
+  async delete(id: number) {
+    const existingJobPosting = await this.jobPostingRepository.findOne({
+      where: { id },
+    });
+
+    if (!existingJobPosting) {
+      throw new NotFoundException(`Job Posting with ${id} not found`);
+    }
+
+    // TODO application 삭제
+
+    const result = await this.jobPostingRepository.delete({ id });
+
+    return result;
+  }
 }

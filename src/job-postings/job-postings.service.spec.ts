@@ -294,4 +294,63 @@ describe('JobPostingsService', () => {
       }
     });
   });
+
+  describe('delete', () => {
+    it('id에 대한 jobPosting을 삭제하고 삭제한 개수를 반환', async () => {
+      const jobPostingId = 2;
+      const jobPosting = {
+        position: '3 position 333',
+        description:
+          'description description description description description',
+        stack: 'react',
+        reward: 1000000,
+        companyId: 3,
+        id: 9,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      const deleteResult = {
+        affected: 1,
+        raw: [],
+      };
+
+      const findOneSpy = jest
+        .spyOn(jobPostingRepository, 'findOne')
+        .mockResolvedValue(jobPosting);
+
+      const deleteSpy = jest
+        .spyOn(jobPostingRepository, 'delete')
+        .mockResolvedValue(deleteResult);
+
+      const result = await jobPostingsService.delete(jobPostingId);
+
+      expect(findOneSpy).toHaveBeenCalledTimes(1);
+      expect(findOneSpy).toHaveBeenCalledWith({ where: { id: jobPostingId } });
+
+      expect(deleteSpy).toHaveBeenCalledTimes(1);
+      expect(deleteSpy).toHaveBeenCalledWith({ id: jobPostingId });
+
+      expect(result).toEqual(deleteResult);
+    });
+
+    it('id에 대한 jobPosting이 존재하지 않으면 에러를 반환', async () => {
+      const jobPostingId = 3;
+
+      const findOneSpy = jest
+        .spyOn(jobPostingRepository, 'findOne')
+        .mockResolvedValue(null);
+
+      try {
+        await jobPostingsService.delete(jobPostingId);
+      } catch (e) {
+        expect(e).toBeInstanceOf(NotFoundException);
+        expect(e.message).toBeDefined();
+
+        expect(findOneSpy).toHaveBeenCalledTimes(1);
+        expect(findOneSpy).toHaveBeenCalledWith({
+          where: { id: jobPostingId },
+        });
+      }
+    });
+  });
 });

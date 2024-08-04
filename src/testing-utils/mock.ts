@@ -14,6 +14,7 @@ export const mockRepository = () => ({
     getMany: jest.fn(),
     getOne: jest.fn(),
   }),
+  delete: jest.fn(),
 });
 
 export type MockRepository<T = any> = Partial<
