@@ -1,15 +1,11 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from '../entities/company.entity';
-import { Repository } from 'typeorm';
 import { CreateCompanyDto } from './dto/create-company';
+import { CompaniesRepository } from './companies.repository';
 
 @Injectable()
 export class CompaniesService {
-  constructor(
-    @InjectRepository(Company)
-    private companyRepository: Repository<Company>,
-  ) {}
+  constructor(private companyRepository: CompaniesRepository) {}
 
   async getOne(id: number): Promise<Company | null> {
     return await this.companyRepository.findOneBy({ id });

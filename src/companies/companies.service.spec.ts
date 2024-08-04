@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CompaniesService } from './companies.service';
-import { MockRepository, mockRepository } from '../testing-utils/mock';
+import { MockRepository, mockRepository } from '../../test/testing-utils/mock';
 import { Company } from '../entities/company.entity';
-import { getRepositoryToken } from '@nestjs/typeorm';
+import { CompaniesRepository } from './companies.repository';
 
 describe('CompaniesService', () => {
   let companiesService: CompaniesService;
@@ -12,14 +12,13 @@ describe('CompaniesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CompaniesService,
-        { provide: getRepositoryToken(Company), useValue: mockRepository() },
+        { provide: CompaniesRepository, useValue: mockRepository() },
       ],
     }).compile();
 
     companiesService = module.get<CompaniesService>(CompaniesService);
-    companyRepository = module.get<MockRepository<Company>>(
-      getRepositoryToken(Company),
-    );
+    companyRepository =
+      module.get<MockRepository<Company>>(CompaniesRepository);
   });
 
   it('should be defined', () => {
