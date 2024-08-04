@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { JobPostingsService } from './job-postings.service';
 import { CreateJobPostingDto } from './dto/create-job-posting.dto';
@@ -16,8 +17,8 @@ export class JobPostingsController {
   constructor(private readonly jobPostingsService: JobPostingsService) {}
 
   @Get()
-  async getAll() {
-    const jobPostings = await this.jobPostingsService.getAll();
+  async getAll(@Query('search') search?: string) {
+    const jobPostings = await this.jobPostingsService.getAll(search);
     const parsedJobPostings = jobPostings.map((jp) => ({
       id: jp.id,
       companyName: jp.company.name,

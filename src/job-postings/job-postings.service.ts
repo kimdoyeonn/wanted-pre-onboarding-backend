@@ -3,10 +3,17 @@ import { JobPosting } from '../entities/job-posting.entity';
 import { CreateJobPostingDto } from './dto/create-job-posting.dto';
 import { UpdateJobPostingDto } from './dto/update-job-posting.dto';
 import { JobPostingsRepository } from './job-postings.repository';
+import { CompaniesRepository } from '../companies/companies.repository';
+import { ApplicationRepository } from 'src/applications/application.repository';
+import { Like } from 'typeorm';
 
 @Injectable()
 export class JobPostingsService {
-  constructor(private jobPostingRepository: JobPostingsRepository) {}
+  constructor(
+    private jobPostingRepository: JobPostingsRepository,
+    private CompanyRepository: CompaniesRepository,
+    private applicationRepository: ApplicationRepository,
+  ) {}
 
   async getOne(id: number) {
     return await this.jobPostingRepository.findOne({ where: { id } });
@@ -26,22 +33,63 @@ export class JobPostingsService {
     });
 
     if (!jobPosting) {
-      throw new NotFoundException('존재하지 않는 채용공고입니다.');
+      throw new NotFoundException('job posting not found');
     }
 
     return jobPosting;
   }
 
-  async getAll() {
+  async getAll(search?: string) {
     const jobPostings = await this.jobPostingRepository.find({
       relations: { company: true },
+      ...(search
+        ? {
+            where: [
+              {
+                position: Like(`%${search}%`),
+              },
+              {
+                stack: Like(`%${search}%`),
+              },
+              {
+                company: {
+                  name: Like(`%${search}%`),
+                },
+              },
+              {
+                company: {
+                  nation: Like(`%${search}%`),
+                },
+              },
+              {
+                company: {
+                  city: Like(`%${search}%`),
+                },
+              },
+              {
+                description: Like(`%${search}%`),
+              },
+            ],
+          }
+        : {}),
     });
 
     return jobPostings;
   }
 
   async create(jobPosting: CreateJobPostingDto): Promise<JobPosting> {
-    return await this.jobPostingRepository.save(jobPosting);
+    const existingCompany = await this.CompanyRepository.findOneBy({
+      id: jobPosting.companyId,
+    });
+
+    if (!existingCompany) {
+      throw new NotFoundException(
+        `Company with ${jobPosting.companyId} not found`,
+      );
+    }
+
+    const result = await this.jobPostingRepository.save(jobPosting);
+    return result;
   }
 
   async update(id: number, jobPosting: UpdateJobPostingDto) {
@@ -70,7 +118,16 @@ export class JobPostingsService {
       throw new NotFoundException(`Job Posting with ${id} not found`);
     }
 
-    // TODO application 삭제
+    const applications = await this.applicationRepository.findBy({
+      jobPostingId: existingJobPosting.id,
+    });
+
+    if (applications) {
+      const promises = applications.map((application) =>
+        this.applicationRepository.delete({ id: application.id }),
+      );
+      Promise.all(promises);
+    }
 
     const result = await this.jobPostingRepository.delete({ id });
 
