@@ -41,6 +41,8 @@ export class JobPosting {
   @JoinColumn({ name: 'company_id' })
   company?: Company;
 
-  @OneToMany(() => Application, (application) => application.jobPosting)
+  @OneToMany(() => Application, (application) => application.jobPosting, {
+    cascade: true,
+  })
   applications?: Application[];
 }

@@ -28,13 +28,11 @@ export class Application {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @OneToOne(() => User, (user) => user.application, { cascade: true })
+  @OneToOne(() => User, (user) => user.application)
   @JoinColumn({ name: 'user_id' })
   user?: User;
 
-  @ManyToOne(() => JobPosting, (jobPosting) => jobPosting.applications, {
-    cascade: true,
-  })
+  @ManyToOne(() => JobPosting, (jobPosting) => jobPosting.applications)
   @JoinColumn({ name: 'job_posting_id' })
   jobPosting?: JobPosting;
 }

@@ -34,10 +34,12 @@ export class Company {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @OneToOne(() => User, (user) => user.company, { cascade: true })
+  @OneToOne(() => User, (user) => user.company)
   @JoinColumn({ name: 'user_id' })
   user?: User;
 
-  @OneToMany(() => JobPosting, (jobPosting) => jobPosting.company)
+  @OneToMany(() => JobPosting, (jobPosting) => jobPosting.company, {
+    cascade: true,
+  })
   jobPostings?: JobPosting[];
 }
