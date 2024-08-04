@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -23,7 +24,7 @@ export class User {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @OneToOne(() => Application, (application) => application, { cascade: true })
+  @OneToMany(() => Application, (application) => application, { cascade: true })
   application?: Application;
 
   @OneToOne(() => Company, (company) => company.user, { cascade: true })

@@ -4,7 +4,6 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -28,7 +27,7 @@ export class Application {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @OneToOne(() => User, (user) => user.application)
+  @ManyToOne(() => User, (user) => user.application)
   @JoinColumn({ name: 'user_id' })
   user?: User;
 
