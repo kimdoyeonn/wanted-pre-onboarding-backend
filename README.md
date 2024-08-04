@@ -16,21 +16,6 @@
 - 본 서비스는 기업의 채용을 위한 웹 서비스 입니다.
 - 회사는 채용공고를 생성하고, 이에 사용자는 지원합니다
 
-## TODO
-
-- [ ] API
-  - [x] 채용공고 등록 `/job-posting POST`
-  - [x] 채용공고 수정 `/job-posting/:id PATCH`
-    - 회사 ID를 제외하고 수정 가능
-  - [x] 채용공고 삭제 `/job-posting/:id DELETE`
-  - [x] 채용공고 목록 조회
-    - [x] 전체 조회 `/job-posting GET`
-    - [x] 검색 조회(선택) `/job-posting?search=원티드 GET`
-  - [x] 공고 상세 조회 `/job-posting/:id GET`
-    - [x] 같은 회사의 다른 채용 공고(선택)
-  - [x] 사용자가 채용공고 지원(선택) `/application POST`
-    - [x] 사용자는 1회만 지원 가능
-
 ## 실행 환경
 
 - `.env` 추가
@@ -46,6 +31,39 @@
   ```
   npm run start
   ```
+
+## Commit Convention
+
+```
+Feat: 새로운 기능 추가
+Fix: 버그 수정
+Docs: 문서 수정
+Refactor: 코드 리펙토링
+Chore: 기타 변경
+Test: 테스트 작성
+```
+
+## TODO
+
+- [ ] API
+  - [x] 채용공고 등록 `/job-posting POST`
+  - [x] 채용공고 수정 `/job-posting/:id PATCH`
+    - 회사 ID를 제외하고 수정 가능
+  - [x] 채용공고 삭제 `/job-posting/:id DELETE`
+  - [x] 채용공고 목록 조회
+    - [x] 전체 조회 `/job-posting GET`
+    - [x] 검색 조회(선택) `/job-posting?search=원티드 GET`
+  - [x] 공고 상세 조회 `/job-posting/:id GET`
+    - [x] 같은 회사의 다른 채용 공고(선택)
+  - [x] 사용자가 채용공고 지원(선택) `/application POST`
+    - [x] 사용자는 1회만 지원 가능
+
+## 기술 스택
+
+- 언어: Javascript(TypeScript)
+- 프레임워크: Nest.js v10
+- ORM: TypeORM v0.3.20
+- 데이터베이스: MySQL v8.3.0
 
 ## ERD
 
@@ -418,3 +436,11 @@
         "statusCode": 409
       }
       ```
+
+## 테스트
+
+### 단위 테스트 실행
+
+```
+npm run test
+```
