@@ -10,6 +10,8 @@ import { Application } from './entities/application.entity';
 import { DataSource } from 'typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { JobPostingsModule } from './job-postings/job-postings.module';
+import { ApplicationsModule } from './applications/applications.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { JobPostingsModule } from './job-postings/job-postings.module';
     }),
     CompaniesModule,
     JobPostingsModule,
+    ApplicationsModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

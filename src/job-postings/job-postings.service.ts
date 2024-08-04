@@ -1,16 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { JobPosting } from '../entities/job-posting.entity';
-import { Repository } from 'typeorm';
 import { CreateJobPostingDto } from './dto/create-job-posting.dto';
 import { UpdateJobPostingDto } from './dto/update-job-posting.dto';
+import { JobPostingsRepository } from './job-postings.repository';
 
 @Injectable()
 export class JobPostingsService {
-  constructor(
-    @InjectRepository(JobPosting)
-    private jobPostingRepository: Repository<JobPosting>,
-  ) {}
+  constructor(private jobPostingRepository: JobPostingsRepository) {}
+
+  async getOne(id: number) {
+    return await this.jobPostingRepository.findOne({ where: { id } });
+  }
 
   async getByCompanyId(companyId: number): Promise<{ id: number }[]> {
     return await this.jobPostingRepository.find({
@@ -76,4 +76,6 @@ export class JobPostingsService {
 
     return result;
   }
+
+  // TODO 검색
 }

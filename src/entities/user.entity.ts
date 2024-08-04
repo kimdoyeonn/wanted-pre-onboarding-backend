@@ -24,8 +24,8 @@ export class User {
   updatedAt: Date;
 
   @OneToOne(() => Application, (application) => application)
-  application: Application;
+  application?: Application;
 
   @OneToOne(() => Company, (company) => company.user)
-  company: Company;
+  company?: Company;
 }

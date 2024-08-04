@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JobPostingsService } from './job-postings.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { JobPosting } from '../entities/job-posting.entity';
 import { MockRepository, mockRepository } from '../testing-utils/mock';
 import { NotFoundException } from '@nestjs/common';
+import { JobPostingsRepository } from './job-postings.repository';
 
 describe('JobPostingsService', () => {
   let jobPostingsService: JobPostingsService;
@@ -14,14 +14,14 @@ describe('JobPostingsService', () => {
       providers: [
         JobPostingsService,
         {
-          provide: getRepositoryToken(JobPosting),
+          provide: JobPostingsRepository,
           useValue: mockRepository(),
         },
       ],
     }).compile();
 
     jobPostingRepository = module.get<MockRepository<JobPosting>>(
-      getRepositoryToken(JobPosting),
+      JobPostingsRepository,
     );
     jobPostingsService = module.get<JobPostingsService>(JobPostingsService);
   });

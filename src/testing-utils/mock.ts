@@ -6,6 +6,7 @@ export const mockRepository = () => ({
     select: jest.fn().mockReturnThis(),
   }),
   findOne: jest.fn(),
+  findOneBy: jest.fn(),
   save: jest.fn(),
   createQueryBuilder: jest.fn().mockReturnValue({
     where: jest.fn().mockReturnThis(),
