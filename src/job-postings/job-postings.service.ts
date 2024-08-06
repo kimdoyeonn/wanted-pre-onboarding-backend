@@ -4,7 +4,7 @@ import { CreateJobPostingDto } from './dto/create-job-posting.dto';
 import { UpdateJobPostingDto } from './dto/update-job-posting.dto';
 import { JobPostingsRepository } from './job-postings.repository';
 import { CompaniesRepository } from '../companies/companies.repository';
-import { ApplicationRepository } from 'src/applications/application.repository';
+import { ApplicationRepository } from '../applications/application.repository';
 import { Like } from 'typeorm';
 
 @Injectable()
