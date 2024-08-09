@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ApplicationsController } from './applications.controller';
-import { ApplicationsService } from './applications.service';
+import { ApplicationFacade } from './applications.facade';
 
 describe('ApplicationsController', () => {
   let applicationsController: ApplicationsController;
-  let applicationsService: ApplicationsService;
+  let applicationFacade: ApplicationFacade;
 
   const mockApplicationService = {
     apply: jest.fn(),
@@ -14,19 +14,19 @@ describe('ApplicationsController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ApplicationsController],
       providers: [
-        { provide: ApplicationsService, useValue: mockApplicationService },
+        { provide: ApplicationFacade, useValue: mockApplicationService },
       ],
     }).compile();
 
     applicationsController = module.get<ApplicationsController>(
       ApplicationsController,
     );
-    applicationsService = module.get<ApplicationsService>(ApplicationsService);
+    applicationFacade = module.get<ApplicationFacade>(ApplicationFacade);
   });
 
   it('should be defined', () => {
     expect(applicationsController).toBeDefined();
-    expect(applicationsService).toBeDefined();
+    expect(applicationFacade).toBeDefined();
   });
 
   describe('apply', () => {
@@ -49,7 +49,7 @@ describe('ApplicationsController', () => {
       // 지원
 
       const applySpy = jest
-        .spyOn(applicationsService, 'apply')
+        .spyOn(applicationFacade, 'apply')
         .mockResolvedValue(applyResult);
 
       const response = await applicationsController.apply({

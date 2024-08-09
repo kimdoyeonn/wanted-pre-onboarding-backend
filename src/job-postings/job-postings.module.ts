@@ -6,6 +6,9 @@ import { JobPosting } from '../entities/job-posting.entity';
 import { JobPostingsRepository } from './job-postings.repository';
 import { CompaniesRepository } from '../companies/companies.repository';
 import { ApplicationRepository } from 'src/applications/application.repository';
+import { JobPostingFacade } from './job-postings.facade';
+import { CompaniesService } from 'src/companies/companies.service';
+import { ApplicationsService } from 'src/applications/application.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([JobPosting])],
@@ -14,6 +17,9 @@ import { ApplicationRepository } from 'src/applications/application.repository';
     JobPostingsRepository,
     CompaniesRepository,
     ApplicationRepository,
+    JobPostingFacade,
+    CompaniesService,
+    ApplicationsService,
   ],
   controllers: [JobPostingsController],
 })

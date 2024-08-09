@@ -11,34 +11,49 @@ import {
 import { JobPostingsService } from './job-postings.service';
 import { CreateJobPostingDto } from './dto/create-job-posting.dto';
 import { UpdateJobPostingDto } from './dto/update-job-posting.dto';
+import { JobPostingResponseDto } from './dto/job-posting-response.dto';
+import { JobPostingFacade } from './job-postings.facade';
 
 @Controller('job-postings')
 export class JobPostingsController {
-  constructor(private readonly jobPostingsService: JobPostingsService) {}
+  constructor(
+    private readonly jobPostingsService: JobPostingsService,
+    private readonly jobPostingFacade: JobPostingFacade,
+  ) {}
 
   @Get()
-  async getAll(@Query('search') search?: string) {
-    const jobPostings = await this.jobPostingsService.getAll(search);
-    const parsedJobPostings = jobPostings.map((jp) => ({
-      id: jp.id,
-      companyName: jp.company.name,
-      nation: jp.company.nation,
-      city: jp.company.city,
-      position: jp.position,
-      reward: jp.reward,
-      stack: jp.stack,
-    }));
+  async getAll(
+    @Query('search') search?: string,
+  ): Promise<JobPostingResponseDto[]> {
+    const jobPostings = search
+      ? await this.jobPostingsService.getAllWithQuery(search)
+      : await this.jobPostingsService.getAll();
 
-    return parsedJobPostings;
+    const jobPostingResponses = jobPostings.map((jp) =>
+      JobPostingResponseDto.of(jp),
+    );
+
+    return jobPostingResponses;
   }
 
   @Post()
-  async create(@Body() jobPosting: CreateJobPostingDto) {
-    return await this.jobPostingsService.create(jobPosting);
+  async create(
+    @Body() jobPosting: CreateJobPostingDto,
+  ): Promise<JobPostingResponseDto> {
+    const result = await this.jobPostingFacade.create({
+      position: jobPosting.position,
+      description: jobPosting.description,
+      stack: jobPosting.stack,
+      reward: jobPosting.reward,
+      companyId: jobPosting.companyId,
+    });
+    return JobPostingResponseDto.of(result);
   }
 
   @Get('/:id')
-  async getOne(@Param('id') jobPostingId: number) {
+  async getOne(
+    @Param('id') jobPostingId: number,
+  ): Promise<JobPostingResponseDto> {
     const jobPosting =
       await this.jobPostingsService.getOneWithCompanyById(jobPostingId);
 
@@ -46,19 +61,7 @@ export class JobPostingsController {
       jobPosting.company.id,
     );
 
-    const parsedJobPostings = {
-      id: jobPosting.id,
-      companyName: jobPosting.company.name,
-      nation: jobPosting.company.nation,
-      city: jobPosting.company.city,
-      position: jobPosting.position,
-      reward: jobPosting.reward,
-      stack: jobPosting.stack,
-      description: jobPosting.description,
-      otherJobPostings: otherJobPostings.map((jp) => jp.id),
-    };
-
-    return parsedJobPostings;
+    return JobPostingResponseDto.of(jobPosting, otherJobPostings);
   }
 
   @Patch('/:id')
@@ -66,11 +69,11 @@ export class JobPostingsController {
     @Param('id') jobPostingId: number,
     @Body() jobPosting: UpdateJobPostingDto,
   ) {
-    return await this.jobPostingsService.update(jobPostingId, jobPosting);
+    await this.jobPostingFacade.update(jobPostingId, jobPosting);
   }
 
   @Delete('/:id')
   async delete(@Param('id') jobPostingId: number) {
-    await this.jobPostingsService.delete(jobPostingId);
+    await this.jobPostingFacade.delete(jobPostingId);
   }
 }

@@ -3,30 +3,37 @@ import { JobPosting } from '../entities/job-posting.entity';
 import { CreateJobPostingDto } from './dto/create-job-posting.dto';
 import { UpdateJobPostingDto } from './dto/update-job-posting.dto';
 import { JobPostingsRepository } from './job-postings.repository';
-import { CompaniesRepository } from '../companies/companies.repository';
-import { ApplicationRepository } from '../applications/application.repository';
 import { Like } from 'typeorm';
+
+export type JobPostingId = { id: number };
+export type JobPostingIds = JobPostingId[];
 
 @Injectable()
 export class JobPostingsService {
-  constructor(
-    private jobPostingRepository: JobPostingsRepository,
-    private CompanyRepository: CompaniesRepository,
-    private applicationRepository: ApplicationRepository,
-  ) {}
+  constructor(private jobPostingRepository: JobPostingsRepository) {}
 
   async getOne(id: number) {
-    return await this.jobPostingRepository.findOne({ where: { id } });
+    const jobPosting = await this.jobPostingRepository.findOne({
+      where: { id },
+    });
+
+    if (!jobPosting) {
+      throw new NotFoundException('job posting not found');
+    }
+
+    return jobPosting;
   }
 
-  async getByCompanyId(companyId: number): Promise<{ id: number }[]> {
-    return await this.jobPostingRepository.find({
+  async getByCompanyId(companyId: number): Promise<JobPostingIds> {
+    const jobPosting = await this.jobPostingRepository.find({
       select: { id: true },
       where: { company: { id: companyId } },
     });
+
+    return jobPosting;
   }
 
-  async getOneWithCompanyById(id: number) {
+  async getOneWithCompanyById(id: number): Promise<JobPosting> {
     const jobPosting = await this.jobPostingRepository.findOne({
       relations: { company: true },
       where: { id },
@@ -39,100 +46,67 @@ export class JobPostingsService {
     return jobPosting;
   }
 
-  async getAll(search?: string) {
+  async getAllWithQuery(query?: string) {
     const jobPostings = await this.jobPostingRepository.find({
       relations: { company: true },
-      ...(search
-        ? {
-            where: [
-              {
-                position: Like(`%${search}%`),
-              },
-              {
-                stack: Like(`%${search}%`),
-              },
-              {
-                company: {
-                  name: Like(`%${search}%`),
-                },
-              },
-              {
-                company: {
-                  nation: Like(`%${search}%`),
-                },
-              },
-              {
-                company: {
-                  city: Like(`%${search}%`),
-                },
-              },
-              {
-                description: Like(`%${search}%`),
-              },
-            ],
-          }
-        : {}),
+      where: [
+        {
+          position: Like(`%${query}%`),
+        },
+        {
+          stack: Like(`%${query}%`),
+        },
+        {
+          company: {
+            name: Like(`%${query}%`),
+          },
+        },
+        {
+          company: {
+            nation: Like(`%${query}%`),
+          },
+        },
+        {
+          company: {
+            city: Like(`%${query}%`),
+          },
+        },
+        {
+          description: Like(`%${query}%`),
+        },
+      ],
     });
 
     return jobPostings;
   }
 
-  async create(jobPosting: CreateJobPostingDto): Promise<JobPosting> {
-    const existingCompany = await this.CompanyRepository.findOneBy({
-      id: jobPosting.companyId,
+  async getAll() {
+    const jobPostings = await this.jobPostingRepository.find({
+      relations: { company: true },
     });
 
-    if (!existingCompany) {
-      throw new NotFoundException(
-        `Company with ${jobPosting.companyId} not found`,
-      );
-    }
+    return jobPostings;
+  }
 
-    const result = await this.jobPostingRepository.save(jobPosting);
+  async save(jobPosting: CreateJobPostingDto) {
+    const result = this.jobPostingRepository.save({
+      position: jobPosting.position,
+      description: jobPosting.description,
+      stack: jobPosting.stack,
+      reward: jobPosting.reward,
+      companyId: jobPosting.companyId,
+    });
+
     return result;
   }
 
   async update(id: number, jobPosting: UpdateJobPostingDto) {
-    const existingJobPosting = await this.jobPostingRepository.findOne({
-      where: { id },
-    });
-
-    if (!existingJobPosting) {
-      throw new NotFoundException(`Job Posting with ${id} not found`);
-    }
-
-    const updatedJobPosting = await this.jobPostingRepository.save({
-      ...existingJobPosting,
-      ...jobPosting,
-    });
-
-    return updatedJobPosting;
-  }
-
-  async delete(id: number) {
-    const existingJobPosting = await this.jobPostingRepository.findOne({
-      where: { id },
-    });
-
-    if (!existingJobPosting) {
-      throw new NotFoundException(`Job Posting with ${id} not found`);
-    }
-
-    const applications = await this.applicationRepository.findBy({
-      jobPostingId: existingJobPosting.id,
-    });
-
-    if (applications) {
-      const promises = applications.map((application) =>
-        this.applicationRepository.delete({ id: application.id }),
-      );
-      Promise.all(promises);
-    }
-
-    const result = await this.jobPostingRepository.delete({ id });
-
+    const result = await this.jobPostingRepository.update(id, jobPosting);
     return result;
   }
 
-  // TODO 검색
+  async delete(id: number) {
+    const result = await this.jobPostingRepository.delete(id);
+    return result;
+  }
 }

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ApplicationsService } from './applications.service';
+import { ApplicationsService } from './applications.facade';
 import { Application } from '../entities/application.entity';
 import { MockRepository, mockRepository } from '../../test/testing-utils/mock';
 import { JobPostingsService } from '../job-postings/job-postings.service';
