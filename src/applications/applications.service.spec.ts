@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ApplicationsService } from './applications.facade';
+import { ApplicationFacade } from './applications.facade';
 import { Application } from '../entities/application.entity';
 import { MockRepository, mockRepository } from '../../test/testing-utils/mock';
 import { JobPostingsService } from '../job-postings/job-postings.service';
@@ -9,8 +9,10 @@ import { UsersRepository } from '../users/users.repository';
 import { CompaniesService } from '../companies/companies.service';
 import { CompaniesRepository } from '../companies/companies.repository';
 import { ApplicationRepository } from './application.repository';
+import { ApplicationsService } from './application.service';
 
 describe('ApplicationsService', () => {
+  let applicationFacade: ApplicationFacade;
   let applicationsService: ApplicationsService;
   let applicationRepository: MockRepository<Application>;
   let jobPostingsService: JobPostingsService;
@@ -21,6 +23,7 @@ describe('ApplicationsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ApplicationsService,
+        ApplicationFacade,
         {
           provide: ApplicationRepository,
           useValue: mockRepository(),
@@ -47,11 +50,13 @@ describe('ApplicationsService', () => {
     usersService = module.get<UsersService>(UsersService);
     companiesService = module.get<CompaniesService>(CompaniesService);
     applicationsService = module.get<ApplicationsService>(ApplicationsService);
+    applicationFacade = module.get<ApplicationFacade>(ApplicationFacade);
     applicationRepository = module.get(ApplicationRepository);
   });
 
   it('should be defined', () => {
     expect(applicationsService).toBeDefined();
+    expect(applicationFacade).toBeDefined();
     expect(applicationRepository).toBeDefined();
     expect(jobPostingsService).toBeDefined();
     expect(usersService).toBeDefined();
@@ -101,7 +106,7 @@ describe('ApplicationsService', () => {
         .spyOn(applicationRepository, 'save')
         .mockResolvedValue(newApplication);
 
-      const result = await applicationsService.apply({ userId, jobPostingId });
+      const result = await applicationFacade.apply({ userId, jobPostingId });
 
       expect(getUserSpy).toHaveBeenCalledTimes(1);
       expect(getUserSpy).toHaveBeenCalledWith(userId);

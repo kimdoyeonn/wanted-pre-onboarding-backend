@@ -1,10 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JobPostingsController } from './job-postings.controller';
 import { JobPostingsService } from './job-postings.service';
+import { JobPostingFacade } from './job-postings.facade';
+import { CompaniesService } from 'src/companies/companies.service';
+import { ApplicationsService } from 'src/applications/application.service';
 
 describe('JobPostingsController', () => {
   let jobPostingsController: JobPostingsController;
   let jobPostingsService: JobPostingsService;
+  let jobPostingFacade: JobPostingFacade;
+  let applicationsService: ApplicationsService;
 
   const mockJobPostingsService = {
     create: jest.fn(),
@@ -16,11 +21,28 @@ describe('JobPostingsController', () => {
     delete: jest.fn(),
   };
 
+  const mockCompaniesService = {
+    getOne: jest.fn(),
+    getByUserId: jest.fn(),
+    create: jest.fn(),
+  };
+
+  const mockApplicationsService = {
+    getByJobPostingId: jest.fn(),
+    delete: jest.fn(),
+    save: jest.fn(),
+    getApplication: jest.fn(),
+    checkExistingApplication: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [JobPostingsController],
       providers: [
         { provide: JobPostingsService, useValue: mockJobPostingsService },
+        JobPostingFacade,
+        { provide: CompaniesService, useValue: mockCompaniesService },
+        { provide: ApplicationsService, useValue: mockApplicationsService },
       ],
     }).compile();
 
@@ -28,11 +50,15 @@ describe('JobPostingsController', () => {
       JobPostingsController,
     );
     jobPostingsService = module.get<JobPostingsService>(JobPostingsService);
+    jobPostingFacade = module.get<JobPostingFacade>(JobPostingFacade);
+    applicationsService = module.get<ApplicationsService>(ApplicationsService);
   });
 
   it('should be defined', () => {
     expect(jobPostingsController).toBeDefined();
     expect(jobPostingsService).toBeDefined();
+    expect(jobPostingFacade).toBeDefined();
+    expect(applicationsService).toBeDefined();
   });
 
   describe('getAll', () => {
@@ -123,7 +149,7 @@ describe('JobPostingsController', () => {
 
   describe('create', () => {
     it('jobPosting을 생성', async () => {
-      const jobPostingDto = {
+      const createJobPostingDto = {
         position: '3 position 333',
         description:
           'description description description description description',
@@ -133,22 +159,25 @@ describe('JobPostingsController', () => {
       };
 
       const newJobPosting = {
+        id: 9,
+        companyName: 'company test',
+        nation: 'korea',
+        city: 'seoul',
         position: '3 position 333',
+        reward: 1000000,
         description:
           'description description description description description',
         stack: 'react',
-        reward: 1000000,
-        companyId: 3,
-        id: 9,
+        companyId: 2,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       const createSpy = jest
-        .spyOn(jobPostingsService, 'create')
+        .spyOn(jobPostingFacade, 'create')
         .mockResolvedValue(newJobPosting);
 
-      const response = await jobPostingsController.create(jobPostingDto);
+      const response = await jobPostingFacade.create(createJobPostingDto);
 
       expect(createSpy).toHaveBeenCalled();
       expect(response).toEqual(newJobPosting);
@@ -232,10 +261,10 @@ describe('JobPostingsController', () => {
       };
 
       const updateSpy = jest
-        .spyOn(jobPostingsService, 'update')
+        .spyOn(jobPostingFacade, 'update')
         .mockResolvedValue(updateResult);
 
-      const response = await jobPostingsController.update(
+      const response = await jobPostingFacade.update(
         jobPostingId,
         jobPostingDto,
       );
@@ -251,14 +280,44 @@ describe('JobPostingsController', () => {
     it('id에 대한 jobPosting을 삭제하고 아무것도 반환하지 않음', async () => {
       const jobPostingId = 2;
 
-      const deleteSpy = jest
-        .spyOn(jobPostingsService, 'delete')
-        .mockResolvedValue({
-          affected: 1,
-          raw: [],
-        });
+      const existingJobPosting = {
+        position: 'position',
+        description: 'description',
+        stack: 'Java',
+        reward: 2000000,
+        companyId: 3,
+        id: 9,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-      const response = await jobPostingsController.delete(jobPostingId);
+      const getOneSpy = jest
+        .spyOn(jobPostingsService, 'getOne')
+        .mockResolvedValue(existingJobPosting);
+
+      const getApplicationByJobPostingId = jest
+        .spyOn(applicationsService, 'getByJobPostingId')
+        .mockResolvedValue([
+          {
+            id: 1,
+            userId: 2,
+            jobPostingId: 1,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ]);
+
+      const deleteSpy = jest.spyOn(jobPostingsService, 'delete');
+
+      const response = await jobPostingFacade.delete(jobPostingId);
+
+      expect(getOneSpy).toHaveBeenCalledTimes(1);
+      expect(getOneSpy).toHaveBeenCalledWith(jobPostingId);
+
+      expect(getApplicationByJobPostingId).toHaveBeenCalledTimes(1);
+      expect(getApplicationByJobPostingId).toHaveBeenCalledWith(
+        existingJobPosting.id,
+      );
 
       expect(deleteSpy).toHaveBeenCalled();
       expect(deleteSpy).toHaveBeenCalledWith(jobPostingId);

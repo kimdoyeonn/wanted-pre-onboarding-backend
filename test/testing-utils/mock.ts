@@ -15,6 +15,7 @@ export const mockRepository = () => ({
     getMany: jest.fn(),
     getOne: jest.fn(),
   }),
+  update: jest.fn(),
   delete: jest.fn(),
   findBy: jest.fn(),
 });

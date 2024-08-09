@@ -3,13 +3,12 @@ import { ApplicationsController } from './applications.controller';
 import { ApplicationFacade } from './applications.facade';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Application } from '../entities/application.entity';
-import { JobPostingsService } from 'src/job-postings/job-postings.service';
-import { UsersService } from 'src/users/users.service';
-import { JobPostingsRepository } from 'src/job-postings/job-postings.repository';
-import { UsersRepository } from 'src/users/users.repository';
-import { CompaniesRepository } from 'src/companies/companies.repository';
+import { JobPostingsService } from '../job-postings/job-postings.service';
+import { UsersService } from '../users/users.service';
 import { ApplicationRepository } from './application.repository';
 import { ApplicationsService } from './application.service';
+import { JobPostingsRepository } from 'src/job-postings/job-postings.repository';
+import { UsersRepository } from 'src/users/users.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Application])],
@@ -22,7 +21,6 @@ import { ApplicationsService } from './application.service';
     UsersService,
     JobPostingsRepository,
     UsersRepository,
-    CompaniesRepository,
   ],
 })
 export class ApplicationsModule {}

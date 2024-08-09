@@ -9,8 +9,8 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class JobPostingFacade {
   constructor(
-    private companiesService: CompaniesService,
     private jobPostingsService: JobPostingsService,
+    private companiesService: CompaniesService,
     private applicationsService: ApplicationsService,
   ) {}
 
@@ -64,7 +64,7 @@ export class JobPostingFacade {
       existingJobPosting.id,
     );
 
-    if (applications) {
+    if (applications.length > 0) {
       const promises = applications.map((application) =>
         this.applicationsService.delete(application.id),
       );

@@ -42,6 +42,12 @@ describe('ApplicationsController', () => {
         updatedAt: new Date(),
       };
 
+      const resultDto = {
+        id: 1,
+        jobPostingId,
+        userId,
+      };
+
       // user가 존재하는지 확인
       // user가 지원 이력이 있는지 확인
       // jobPostingId가 존재하는지 확인
@@ -60,7 +66,7 @@ describe('ApplicationsController', () => {
       expect(applySpy).toHaveBeenCalled();
       expect(applySpy).toHaveBeenCalledWith({ userId, jobPostingId });
 
-      expect(response).toEqual(applyResult);
+      expect(response).toEqual(resultDto);
     });
   });
 });

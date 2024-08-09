@@ -8,16 +8,22 @@ import { CompaniesService } from '../companies/companies.service';
 import { CompaniesRepository } from '../companies/companies.repository';
 import { ApplicationRepository } from '../applications/application.repository';
 import { Company } from 'src/entities/company.entity';
+import { JobPostingFacade } from './job-postings.facade';
+import { ApplicationsService } from 'src/applications/application.service';
 
 describe('JobPostingsService', () => {
+  let jobPostingFacade: JobPostingFacade;
   let jobPostingsService: JobPostingsService;
   let jobPostingRepository: MockRepository<JobPosting>;
   let companiesRepository: MockRepository<Company>;
   let companiesService: CompaniesService;
+  let applicationsService: ApplicationsService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        ApplicationsService,
+        JobPostingFacade,
         JobPostingsService,
         {
           provide: JobPostingsRepository,
@@ -32,6 +38,7 @@ describe('JobPostingsService', () => {
           useValue: mockRepository(),
         },
         CompaniesService,
+        ApplicationsService,
       ],
     }).compile();
 
@@ -40,15 +47,18 @@ describe('JobPostingsService', () => {
     );
     companiesRepository =
       module.get<MockRepository<Company>>(CompaniesRepository);
+    jobPostingFacade = module.get<JobPostingFacade>(JobPostingFacade);
     jobPostingsService = module.get<JobPostingsService>(JobPostingsService);
     companiesService = module.get<CompaniesService>(CompaniesService);
+    applicationsService = module.get<ApplicationsService>(ApplicationsService);
   });
 
   it('should be defined', () => {
-    expect(jobPostingsService).toBeDefined();
+    expect(jobPostingFacade).toBeDefined();
     expect(jobPostingRepository).toBeDefined();
     expect(companiesService).toBeDefined();
     expect(companiesRepository).toBeDefined();
+    expect(applicationsService).toBeDefined();
   });
 
   describe('getByCompanyId', () => {
@@ -205,7 +215,7 @@ describe('JobPostingsService', () => {
   });
 
   describe('create', () => {
-    const jobPostingDto = {
+    const createJobPostingDto = {
       position: '3 position 333',
       description:
         'description description description description description',
@@ -221,32 +231,44 @@ describe('JobPostingsService', () => {
       reward: 1000000,
       companyId: 3,
       id: 9,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date('2024-08-09T17:38:03.130Z'),
+      updatedAt: new Date('2024-08-09T17:38:03.130Z'),
+      company: {
+        city: 'Seoul',
+        createdAt: new Date('2024-08-09T17:38:03.130Z'),
+        id: 3,
+        name: 'test',
+        nation: 'Korea',
+        updatedAt: new Date('2024-08-09T17:38:03.130Z'),
+        userId: 2,
+      },
     };
     it('JobPosting 객체를 생성하여 반환', async () => {
       const findCompanySpy = jest
-        .spyOn(companiesRepository, 'findOneBy')
+        .spyOn(companiesService, 'getOne')
         .mockResolvedValue({
           id: 3,
           name: 'test',
           nation: 'Korea',
           city: 'Seoul',
+          userId: 2,
+          createdAt: new Date('2024-08-09T17:38:03.130Z'),
+          updatedAt: new Date('2024-08-09T17:38:03.130Z'),
         });
 
-      const createSpy = jest
-        .spyOn(jobPostingRepository, 'save')
+      const saveSpy = jest
+        .spyOn(jobPostingsService, 'save')
         .mockResolvedValue(newJobPosting);
 
-      const result = await jobPostingsService.create(jobPostingDto);
+      const result = await jobPostingFacade.create(createJobPostingDto);
 
       expect(findCompanySpy).toHaveBeenCalledTimes(1);
-      expect(findCompanySpy).toHaveBeenCalledWith({
-        id: jobPostingDto.companyId,
-      });
+      expect(findCompanySpy).toHaveBeenCalledWith(
+        createJobPostingDto.companyId,
+      );
 
-      expect(createSpy).toHaveBeenCalledTimes(1);
-      expect(createSpy).toHaveBeenCalledWith(jobPostingDto);
+      expect(saveSpy).toHaveBeenCalledTimes(1);
+      expect(saveSpy).toHaveBeenCalledWith(createJobPostingDto);
 
       expect(result).toEqual(newJobPosting);
     });
@@ -255,7 +277,7 @@ describe('JobPostingsService', () => {
       jest.spyOn(jobPostingRepository, 'save').mockResolvedValue(newJobPosting);
 
       try {
-        await jobPostingsService.create(jobPostingDto);
+        await jobPostingFacade.create(createJobPostingDto);
       } catch (e) {
         expect(e).toBeInstanceOf(NotFoundException);
         expect(e.message).toBeDefined();
@@ -280,8 +302,8 @@ describe('JobPostingsService', () => {
         reward: 1000000,
         companyId: 3,
         id: 9,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date('2024-08-09T17:38:03.130Z'),
+        updatedAt: new Date('2024-08-09T17:38:03.130Z'),
       };
       const updateResult = {
         position: 'updated position',
@@ -290,30 +312,22 @@ describe('JobPostingsService', () => {
         reward: 2000000,
         companyId: 3,
         id: 9,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date('2024-08-09T17:38:03.130Z'),
+        updatedAt: new Date('2024-08-09T17:38:03.130Z'),
       };
 
       const findOneSpy = jest
-        .spyOn(jobPostingRepository, 'findOne')
+        .spyOn(jobPostingsService, 'getOne')
         .mockResolvedValue(targetJobPosting);
 
-      const saveSpy = jest
-        .spyOn(jobPostingRepository, 'save')
-        .mockResolvedValue(updateResult);
+      const saveSpy = jest.spyOn(jobPostingsService, 'update');
 
-      const result = await jobPostingsService.update(
-        jobPostingId,
-        jobPostingDto,
-      );
+      const result = await jobPostingFacade.update(jobPostingId, jobPostingDto);
 
       expect(findOneSpy).toHaveBeenCalledTimes(1);
-      expect(findOneSpy).toHaveBeenCalledWith({ where: { id: jobPostingId } });
+      expect(findOneSpy).toHaveBeenCalledWith(jobPostingId);
       expect(saveSpy).toHaveBeenCalledTimes(1);
-      expect(saveSpy).toHaveBeenCalledWith({
-        ...targetJobPosting,
-        ...jobPostingDto,
-      });
+      expect(saveSpy).toHaveBeenCalledWith(jobPostingId, jobPostingDto);
 
       expect(result).toEqual(updateResult);
     });
@@ -360,20 +374,35 @@ describe('JobPostingsService', () => {
       };
 
       const findOneSpy = jest
-        .spyOn(jobPostingRepository, 'findOne')
+        .spyOn(jobPostingsService, 'getOne')
         .mockResolvedValue(jobPosting);
 
+      const findApplicationSpy = jest
+        .spyOn(applicationsService, 'getByJobPostingId')
+        .mockResolvedValue([
+          {
+            id: 1,
+            userId: 1,
+            jobPostingId: 1,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ]);
+
       const deleteSpy = jest
-        .spyOn(jobPostingRepository, 'delete')
+        .spyOn(jobPostingsService, 'delete')
         .mockResolvedValue(deleteResult);
 
-      const result = await jobPostingsService.delete(jobPostingId);
+      const result = await jobPostingFacade.delete(jobPostingId);
 
       expect(findOneSpy).toHaveBeenCalledTimes(1);
-      expect(findOneSpy).toHaveBeenCalledWith({ where: { id: jobPostingId } });
+      expect(findOneSpy).toHaveBeenCalledWith(jobPostingId);
+
+      expect(findApplicationSpy).toHaveBeenCalledTimes(1);
+      expect(findApplicationSpy).toHaveBeenCalledWith(jobPosting.id);
 
       expect(deleteSpy).toHaveBeenCalledTimes(1);
-      expect(deleteSpy).toHaveBeenCalledWith({ id: jobPostingId });
+      expect(deleteSpy).toHaveBeenCalledWith(jobPostingId);
 
       expect(result).toEqual(deleteResult);
     });
