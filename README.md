@@ -67,7 +67,7 @@ Test: 테스트 작성
 
 ## ERD
 
-![ERD](https://github.com/user-attachments/assets/f91f5e78-b189-44db-a3b7-7cd89ec1b76e)
+![ERD](https://github.com/user-attachments/assets/eff18a31-e911-4c9d-b8a4-34706448f8cb)
 
 ## 프로젝트 구조
 
